@@ -3,10 +3,12 @@
 SELECT issue_category, COUNT(*) AS total_count
 FROM app.app_jira_cuss_jfs_result_da
 WHERE dt='2024-04-08'
+GROUP BY issue_category;
 
 -- 哪类问题最多？有多少？
 SELECT issue_category, COUNT(*) AS total_count
 FROM app.app_jira_cuss_jfs_result_da
+WHERE dt='2024-04-08'
 GROUP BY issue_category
 ORDER BY total_count DESC
 LIMIT 1;
@@ -22,7 +24,7 @@ LIMIT 1;
 -- v1.4版本上线后，什么问题比较多？
 SELECT issue_category, COUNT(*) AS total_count
 FROM app.app_jira_cuss_jfs_result_da
-WHERE fix_version = 'v1.4'
+WHERE dt='2024-04-08' AND  fix_version like 'v1.4'
 GROUP BY issue_category
 ORDER BY total_count DESC
 LIMIT 1;
