@@ -1,0 +1,7 @@
+-- 近一周，哪类问题增长最快
+SELECT issue_category, COUNT(*) AS issue_count
+FROM app.app_jira_cuss_jfs_result_da
+WHERE dt BETWEEN DATE_SUB(CURRENT_DATE, 7) AND DATE_SUB(CURRENT_DATE, 1)
+GROUP BY issue_category
+ORDER BY COUNT(*) DESC
+LIMIT 1;

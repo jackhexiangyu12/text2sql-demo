@@ -1,0 +1,5 @@
+-- 最近一天问题的分布
+SELECT issue_category, COUNT(*) AS issue_count
+FROM app.app_jira_cuss_jfs_result_da
+WHERE dt = DATE_SUB(CURRENT_DATE, 1)
+GROUP BY issue_category;

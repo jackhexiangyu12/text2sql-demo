@@ -1,0 +1,7 @@
+-- 哪类问题最多，有多少
+SELECT issue_category, COUNT(*) AS issue_count
+FROM app.app_jira_cuss_jfs_result_da
+WHERE dt = DATE_SUB(CURRENT_DATE, 1)
+GROUP BY issue_category
+ORDER BY issue_count DESC
+LIMIT 1;
