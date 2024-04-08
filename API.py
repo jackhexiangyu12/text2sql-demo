@@ -121,16 +121,55 @@ import json
 # print(response.text)
 
 # 解析json内容
-response_text = '{"output":"-- 最近一天问题的分布\\nSELECT issue_category, COUNT(*) AS total_count\\nFROM app.app_jira_cuss_jfs_result_da\\nWHERE dt = DATE_SUB(CURRENT_DATE, 1)\\nGROUP BY issue_category;\\n\\n-- 哪类问题最多？有多少？\\nSELECT issue_category, COUNT(*) AS total_count\\nFROM app.app_jira_cuss_jfs_result_da\\nGROUP BY issue_category\\nORDER BY total_count DESC\\nLIMIT 1;\\n\\n-- 近一周，哪类问题增长最快？\\nSELECT issue_category, COUNT(*) AS total_count\\nFROM app.app_jira_cuss_jfs_result_da\\nWHERE dt BETWEEN DATE_SUB(CURRENT_DATE, 7) AND CURRENT_DATE\\nGROUP BY issue_category\\nORDER BY total_count DESC\\nLIMIT 1;\\n\\n-- v1.4版本上线后，什么问题比较多？\\nSELECT issue_category, COUNT(*) AS total_count\\nFROM app.app_jira_cuss_jfs_result_da\\nWHERE fix_version = \'v1.4\'\\nGROUP BY issue_category\\nORDER BY total_count DESC\\nLIMIT 1;","generation":{"count":2}}'
-# 解析JSON字符串
-parsed_data = json.loads(response_text)
+import re
+from datetime import datetime
 
-# 获取output字段的内容
-sql_queries = parsed_data['output']
+# 假设这是我们要检查和修改的SQL查询字符串
+sql_query = """
+-- 最近一天问题的分布
+SELECT issue_category, COUNT(*) AS total_count
+FROM app.app_jira_cuss_jfs_result_da
+GROUP BY issue_category;
 
-# 将内容写入txt文件
-with open('sql_queries.txt', 'w', encoding='utf-8') as file:
-    file.write(sql_queries)
+-- 哪类问题最多？有多少？
+SELECT issue_category, COUNT(*) AS total_count
+FROM app.app_jira_cuss_jfs_result_da
+GROUP BY issue_category
+ORDER BY total_count DESC
+LIMIT 1;
 
-# 打印完成消息
-print("SQL查询已成功保存到sql_queries.txt文件中。")
+-- 近一周，哪类问题增长最快？
+SELECT issue_category, COUNT(*) AS total_count
+FROM app.app_jira_cuss_jfs_result_da
+WHERE dt BETWEEN DATE_SUB(CURRENT_DATE, 7) AND CURRENT_DATE
+GROUP BY issue_category
+ORDER BY total_count DESC
+LIMIT 1;
+
+-- v1.4版本上线后，什么问题比较多？
+SELECT issue_category, COUNT(*) AS total_count
+FROM app.app_jira_cuss_jfs_result_da
+WHERE fix_version = 'v1.4'
+GROUP BY issue_category
+ORDER BY total_count DESC
+LIMIT 1;
+"""
+
+# 用于匹配FROM子句后面的WHERE子句（如果有的话）
+pattern = r"FROM\s+app\.app_jira_cira_cuss_jfs_result_da(?!.*?WHERE\s+dt\s*=\s*'[^']+')(.*)"
+
+# 获取当前日期并格式化为'YYYY-MM-DD'格式
+current_date = datetime.now().strftime('%Y-%m-%d')
+
+
+# 函数：添加WHERE dt=当前日期条件
+def add_where_dt_clause(match):
+    # 在WHERE子句前添加dt=当前日期条件
+    return match.group(1) + " WHERE dt='" + current_date + "'"
+
+
+# 使用正则表达式检查并添加WHERE dt=条件
+modified_sql_query = re.sub(pattern, add_where_dt_clause, sql_query, flags=re.DOTALL)
+
+# 打印修改后的SQL查询
+print(modified_sql_query)
