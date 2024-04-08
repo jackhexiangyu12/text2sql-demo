@@ -117,12 +117,23 @@ data = {
 # 发送POST请求
 response = requests.post(url, headers=headers, data=json.dumps(data))
 
+if response.text == '':
+    print('Please update token!')
+    exit(-1)
+
+# 解析JSON字符串，获取output字段的内容
+parsed_json = json.loads(response.text)
+sql_output = parsed_json['output']
+
+# 移除每个SQL查询前后的空格和换行符，然后拼接成一个多行字符串
+cleaned_sql_queries = sql_output.strip().replace('\n', '\n')
+
+# 创建多行字符串SQL查询
+sql_query = f'''{cleaned_sql_queries}'''
+
 print('origin_sql_query:')
 # 打印响应内容
-print(response.text)
-
-# 原始的SQL查询
-sql_query = response.text
+print(sql_query)
 
 # 今天的日期
 from datetime import datetime, timedelta
