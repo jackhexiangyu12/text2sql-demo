@@ -122,35 +122,7 @@ print('origin_sql_query:')
 print(response.text)
 
 # 原始的SQL查询
-sql_query = """
--- 最近一天问题的分布
-SELECT issue_category, COUNT(*) AS total_count
-FROM app.app_jira_cuss_jfs_result_da
-GROUP BY issue_category;
-
--- 哪类问题最多？有多少？
-SELECT issue_category, COUNT(*) AS total_count
-FROM app.app_jira_cuss_jfs_result_da
-GROUP BY issue_category
-ORDER BY total_count DESC
-LIMIT 1;
-
--- 近一周，哪类问题增长最快？
-SELECT issue_category, COUNT(*) AS total_count
-FROM app.app_jira_cuss_jfs_result_da
-WHERE dt BETWEEN DATE_SUB(CURRENT_DATE, 7) AND CURRENT_DATE
-GROUP BY issue_category
-ORDER BY total_count DESC
-LIMIT 1;
-
--- v1.4版本上线后，什么问题比较多？
-SELECT issue_category, COUNT(*) AS total_count
-FROM app.app_jira_cuss_jfs_result_da
-WHERE fix_version = 'v1.4'
-GROUP BY issue_category
-ORDER BY total_count DESC
-LIMIT 1;
-"""
+sql_query = response.text
 
 # 今天的日期
 from datetime import datetime, timedelta
@@ -184,6 +156,6 @@ print()
 print('modified_sql_query:')
 # 打印并保存到txt文件中
 print(modified_sql_query)
-file_name = 'modified_sql_query'+now.strftime('%Y-%m-%d')+'.txt'
+file_name = 'modified_sql_query'+now.strftime('%Y-%m-%d-%H-%M-%S')+'.txt'
 with open(file_name, 'w') as f:
     f.write(modified_sql_query)
