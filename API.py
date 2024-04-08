@@ -120,11 +120,9 @@ import json
 # # 打印响应内容
 # print(response.text)
 
-# 解析json内容
-import re
 from datetime import datetime
 
-# 假设这是我们要检查和修改的SQL查询字符串
+# 原始的SQL查询
 sql_query = """
 -- 最近一天问题的分布
 SELECT issue_category, COUNT(*) AS total_count
@@ -155,21 +153,36 @@ ORDER BY total_count DESC
 LIMIT 1;
 """
 
-# 用于匹配FROM子句后面的WHERE子句（如果有的话）
-pattern = r"FROM\s+app\.app_jira_cira_cuss_jfs_result_da(?!.*?WHERE\s+dt\s*=\s*'[^']+')(.*)"
+# 今天的日期
+from datetime import datetime, timedelta
 
-# 获取当前日期并格式化为'YYYY-MM-DD'格式
-current_date = datetime.now().strftime('%Y-%m-%d')
+# 获取当前时间
+now = datetime.now()
+# 计算昨天的日期
+yesterday = now - timedelta(days=1)
+# 格式化昨天的日期为 'YYYY-MM-DD' 格式
+today = yesterday.strftime('%Y-%m-%d')
+# 按行分割SQL查询
+sql_lines = sql_query.split('\n')
 
+# 查找每个FROM app.app_jira_cuss_jfs_result_da后面是否有WHERE条件，并添加条件
+for i, line in enumerate(sql_lines):
+    if 'FROM app.' in line:
+        where_index = i + 1
+        while where_index < len(sql_lines) and sql_lines[where_index].strip().startswith('--'):
+            where_index += 1
+        if where_index < len(sql_lines) and 'WHERE' not in sql_lines[where_index]:
+            sql_lines.insert(where_index, f"WHERE dt='{today}'")
+        elif where_index < len(sql_lines) and 'dt' not in sql_lines[where_index]:
+            sql_lines[where_index] = sql_lines[where_index].replace('WHERE', f"WHERE dt='{today}' AND ")
+    if 'fix_version =' in line:
+        sql_lines[i]=sql_lines[i].replace('fix_version =','fix_version like')
 
-# 函数：添加WHERE dt=当前日期条件
-def add_where_dt_clause(match):
-    # 在WHERE子句前添加dt=当前日期条件
-    return match.group(1) + " WHERE dt='" + current_date + "'"
+# 重新组合SQL查询
+modified_sql_query = '\n'.join(sql_lines)
 
-
-# 使用正则表达式检查并添加WHERE dt=条件
-modified_sql_query = re.sub(pattern, add_where_dt_clause, sql_query, flags=re.DOTALL)
-
-# 打印修改后的SQL查询
+# 打印并保存到txt文件中
 print(modified_sql_query)
+file_name = 'modified_sql_query'+now.strftime('%Y-%m-%d')+'.txt'
+with open(file_name, 'w') as f:
+    f.write(modified_sql_query)
